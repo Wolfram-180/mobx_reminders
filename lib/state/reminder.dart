@@ -1,4 +1,5 @@
 import 'package:mobx/mobx.dart';
+
 part 'reminder.g.dart';
 
 class Reminder = _Reminder with _$Reminder;
