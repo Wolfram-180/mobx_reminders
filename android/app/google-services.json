@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "889423538419",
+    "project_id": "w180-mobx-rem",
+    "storage_bucket": "w180-mobx-rem.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:889423538419:android:9aebd12112aacede142f86",
+        "android_client_info": {
+          "package_name": "com.example.mobx_reminders"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAF3t8pxYYRv_k2_n0ybV7C1CayAkRjcj8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
