@@ -149,6 +149,75 @@ abstract class _AppState with Store {
     isLoading = false;
     return true;
   }
+
+  @action
+  Future<bool> modify(
+    Reminder reminder, {
+    required bool isDone,
+  }) async {
+    final userId = currentUser?.uid;
+    if (userId == null) {
+      return false;
+    }
+
+    // update the remote reminder
+    final collection =
+        await FirebaseFirestore.instance.collection(userId).get();
+    final firebaseReminder = collection.docs
+        .firstWhere(
+          (element) => element.id == reminder.id,
+        )
+        .reference;
+
+    await firebaseReminder.update({
+      _DocumentKeys.isDone: isDone,
+    });
+
+    // update the local reminder
+    reminders
+        .firstWhere(
+          (element) => element.id == reminder.id,
+        )
+        .isDone = isDone;
+
+    return true;
+  }
+
+  @action
+  Future<void> initialize() async {
+    isLoading = true;
+    currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      await _loadReminders();
+      currentScreen = AppScreen.reminders;
+    } else {
+      currentScreen = AppScreen.login;
+    }
+    isLoading = false;
+  }
+
+  @action
+  Future<bool> _loadReminders() async {
+    final userId = currentUser?.uid;
+    if (userId == null) {
+      return false;
+    }
+
+    final collection =
+        await FirebaseFirestore.instance.collection(userId).get();
+
+    final reminders = collection.docs.map(
+      (doc) => Reminder(
+        id: doc.id,
+        creationDate: DateTime.parse(doc[_DocumentKeys.creationDate] as String),
+        isDone: doc[_DocumentKeys.isDone] as bool,
+        text: doc[_DocumentKeys.text] as String,
+      ),
+    );
+
+    this.reminders = ObservableList.of(reminders);
+    return true;
+  }
 }
 
 abstract class _DocumentKeys {
