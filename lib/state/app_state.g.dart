@@ -9,6 +9,14 @@ part of 'app_state.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$AppState on _AppState, Store {
+  Computed<ObservableList<Reminder>>? _$sortedRemindersComputed;
+
+  @override
+  ObservableList<Reminder> get sortedReminders => (_$sortedRemindersComputed ??=
+          Computed<ObservableList<Reminder>>(() => super.sortedReminders,
+              name: '_AppState.sortedReminders'))
+      .value;
+
   late final _$currentScreenAtom =
       Atom(name: '_AppState.currentScreen', context: context);
 
@@ -57,12 +65,93 @@ mixin _$AppState on _AppState, Store {
     });
   }
 
+  late final _$authErrorAtom =
+      Atom(name: '_AppState.authError', context: context);
+
+  @override
+  AuthError? get authError {
+    _$authErrorAtom.reportRead();
+    return super.authError;
+  }
+
+  @override
+  set authError(AuthError? value) {
+    _$authErrorAtom.reportWrite(value, super.authError, () {
+      super.authError = value;
+    });
+  }
+
+  late final _$remindersAtom =
+      Atom(name: '_AppState.reminders', context: context);
+
+  @override
+  ObservableList<Reminder> get reminders {
+    _$remindersAtom.reportRead();
+    return super.reminders;
+  }
+
+  @override
+  set reminders(ObservableList<Reminder> value) {
+    _$remindersAtom.reportWrite(value, super.reminders, () {
+      super.reminders = value;
+    });
+  }
+
+  late final _$deleteAsyncAction =
+      AsyncAction('_AppState.delete', context: context);
+
+  @override
+  Future<bool> delete(Reminder reminder) {
+    return _$deleteAsyncAction.run(() => super.delete(reminder));
+  }
+
+  late final _$deleteAccountAsyncAction =
+      AsyncAction('_AppState.deleteAccount', context: context);
+
+  @override
+  Future<bool> deleteAccount() {
+    return _$deleteAccountAsyncAction.run(() => super.deleteAccount());
+  }
+
+  late final _$logOutAsyncAction =
+      AsyncAction('_AppState.logOut', context: context);
+
+  @override
+  Future<void> logOut() {
+    return _$logOutAsyncAction.run(() => super.logOut());
+  }
+
+  late final _$createReminderAsyncAction =
+      AsyncAction('_AppState.createReminder', context: context);
+
+  @override
+  Future<bool> createReminder(String text) {
+    return _$createReminderAsyncAction.run(() => super.createReminder(text));
+  }
+
+  late final _$_AppStateActionController =
+      ActionController(name: '_AppState', context: context);
+
+  @override
+  void goTo(AppScreen screen) {
+    final _$actionInfo =
+        _$_AppStateActionController.startAction(name: '_AppState.goTo');
+    try {
+      return super.goTo(screen);
+    } finally {
+      _$_AppStateActionController.endAction(_$actionInfo);
+    }
+  }
+
   @override
   String toString() {
     return '''
 currentScreen: ${currentScreen},
 isLoading: ${isLoading},
-currentUser: ${currentUser}
+currentUser: ${currentUser},
+authError: ${authError},
+reminders: ${reminders},
+sortedReminders: ${sortedReminders}
     ''';
   }
 }
