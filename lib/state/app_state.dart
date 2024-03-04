@@ -218,6 +218,57 @@ abstract class _AppState with Store {
     this.reminders = ObservableList.of(reminders);
     return true;
   }
+
+  @action
+  Future<bool> _registerOrLogin({
+    required LoginOrRegisterFunction fn,
+    required String email,
+    required String password,
+  }) async {
+    authError = null;
+    isLoading = true;
+
+    try {
+      await fn(
+        email: email,
+        password: password,
+      );
+      currentUser = FirebaseAuth.instance.currentUser;
+      await _loadReminders();
+      return true;
+    } on FirebaseAuthException catch (e) {
+      currentUser = null;
+      authError = AuthError.from(e);
+      return false;
+    } finally {
+      isLoading = false;
+      if (currentUser != null) {
+        currentScreen = AppScreen.reminders;
+      }
+    }
+  }
+
+  @action
+  Future<bool> register({
+    required String email,
+    required String password,
+  }) =>
+      _registerOrLogin(
+        fn: FirebaseAuth.instance.createUserWithEmailAndPassword,
+        email: email,
+        password: password,
+      );
+
+  @action
+  Future<bool> login({
+    required String email,
+    required String password,
+  }) =>
+      _registerOrLogin(
+        fn: FirebaseAuth.instance.signInWithEmailAndPassword,
+        email: email,
+        password: password,
+      );
 }
 
 abstract class _DocumentKeys {

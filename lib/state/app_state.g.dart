@@ -154,6 +154,18 @@ mixin _$AppState on _AppState, Store {
     return _$_loadRemindersAsyncAction.run(() => super._loadReminders());
   }
 
+  late final _$_registerOrLoginAsyncAction =
+      AsyncAction('_AppState._registerOrLogin', context: context);
+
+  @override
+  Future<bool> _registerOrLogin(
+      {required LoginOrRegisterFunction fn,
+      required String email,
+      required String password}) {
+    return _$_registerOrLoginAsyncAction.run(
+        () => super._registerOrLogin(fn: fn, email: email, password: password));
+  }
+
   late final _$_AppStateActionController =
       ActionController(name: '_AppState', context: context);
 
@@ -163,6 +175,28 @@ mixin _$AppState on _AppState, Store {
         _$_AppStateActionController.startAction(name: '_AppState.goTo');
     try {
       return super.goTo(screen);
+    } finally {
+      _$_AppStateActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  Future<bool> register({required String email, required String password}) {
+    final _$actionInfo =
+        _$_AppStateActionController.startAction(name: '_AppState.register');
+    try {
+      return super.register(email: email, password: password);
+    } finally {
+      _$_AppStateActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  Future<bool> login({required String email, required String password}) {
+    final _$actionInfo =
+        _$_AppStateActionController.startAction(name: '_AppState.login');
+    try {
+      return super.login(email: email, password: password);
     } finally {
       _$_AppStateActionController.endAction(_$actionInfo);
     }
