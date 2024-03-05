@@ -205,12 +205,12 @@ mixin _$AppState on _AppState, Store {
   @override
   String toString() {
     return '''
-currentScreen: ${currentScreen},
-isLoading: ${isLoading},
-currentUser: ${currentUser},
-authError: ${authError},
-reminders: ${reminders},
-sortedReminders: ${sortedReminders}
+      currentScreen: ${currentScreen},
+      isLoading: ${isLoading},
+      currentUser: ${currentUser},
+      authError: ${authError},
+      reminders: ${reminders},
+      sortedReminders: ${sortedReminders}
     ''';
   }
 }
