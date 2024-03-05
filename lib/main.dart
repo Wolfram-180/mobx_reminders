@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:mobx_reminders/dialogs/show_auth_error.dart';
 import 'package:mobx_reminders/firebase_options.dart';
+import 'package:mobx_reminders/loading/loading_screen.dart';
 import 'package:mobx_reminders/state/app_state.dart';
 import 'package:mobx_reminders/views/login_view.dart';
 import 'package:mobx_reminders/views/register_view.dart';
@@ -36,7 +38,27 @@ class App extends StatelessWidget {
       home: ReactionBuilder(
         builder: (context) {
           return autorun(
-            (_) {},
+            (_) {
+              // handle loading screen
+              final isLoading = context.read<AppState>().isLoading;
+              if (isLoading) {
+                LoadingScreen.instance().show(
+                  context: context,
+                  text: 'Loading...',
+                );
+              } else {
+                LoadingScreen.instance().hide();
+              }
+
+              final authError = context.read<AppState>().authError;
+
+              if (authError != null) {
+                showAuthError(
+                  authError: authError,
+                  context: context,
+                );
+              }
+            },
           );
         },
         child: Observer(
