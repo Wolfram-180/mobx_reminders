@@ -55,43 +55,44 @@ class ReminderListView extends StatelessWidget {
           itemCount: appState.sortedReminders.length,
           itemBuilder: (context, index) {
             final reminder = appState.sortedReminders[index];
-            return CheckboxListTile(
-              controlAffinity: ListTileControlAffinity.leading,
-              value: reminder.isDone,
-              onChanged: (isDone) {
-                context.read<AppState>().modify(
-                      reminder,
-                      isDone: isDone ?? false,
-                    );
-                // reminder.isDone = isDone ?? false;
-              },
-              title: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      reminder.text,
-                      style: TextStyle(
-                        decoration: reminder.isDone
-                            ? TextDecoration.lineThrough
-                            : TextDecoration.none,
+            return Observer(builder: (context) {
+              return CheckboxListTile(
+                controlAffinity: ListTileControlAffinity.leading,
+                value: reminder.isDone,
+                onChanged: (isDone) {
+                  context.read<AppState>().modify(
+                        reminder,
+                        isDone: isDone ?? false,
+                      );
+                },
+                title: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        reminder.text,
+                        style: TextStyle(
+                          decoration: reminder.isDone
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                        ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () async {
-                      final showDeleteReminder =
-                          await showDeleteReminderDialog(context);
-                      if (showDeleteReminder) {
-                        context.read<AppState>().delete(reminder);
-                      }
-                    },
-                    icon: const Icon(
-                      Icons.delete,
+                    IconButton(
+                      onPressed: () async {
+                        final showDeleteReminder =
+                            await showDeleteReminderDialog(context);
+                        if (showDeleteReminder) {
+                          context.read<AppState>().delete(reminder);
+                        }
+                      },
+                      icon: const Icon(
+                        Icons.delete,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
+                  ],
+                ),
+              );
+            });
           },
         );
       },

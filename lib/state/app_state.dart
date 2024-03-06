@@ -132,7 +132,7 @@ abstract class _AppState with Store {
         await FirebaseFirestore.instance.collection(userId).add(
       {
         _DocumentKeys.text: text,
-        _DocumentKeys.creationDate: creationDate,
+        _DocumentKeys.creationDate: creationDate.toIso8601String(),
         _DocumentKeys.isDone: false,
       },
     );
