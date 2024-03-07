@@ -146,8 +146,8 @@ abstract class _AppState with Store {
   }
 
   @action
-  Future<bool> modify(
-    Reminder reminder, {
+  Future<bool> modifyReminder({
+    required ReminderId reminderId,
     required bool isDone,
   }) async {
     final userId = authProvider.userId;
@@ -156,7 +156,7 @@ abstract class _AppState with Store {
     }
 
     await remindersProvider.modify(
-      reminderId: reminder.id,
+      reminderId: reminderId,
       isDone: isDone,
       userId: userId,
     );
@@ -164,7 +164,7 @@ abstract class _AppState with Store {
     // update the local reminder
     reminders
         .firstWhere(
-          (element) => element.id == reminder.id,
+          (element) => element.id == reminderId,
         )
         .isDone = isDone;
 
