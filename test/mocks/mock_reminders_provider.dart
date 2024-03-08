@@ -1,4 +1,3 @@
-import 'package:mobx_reminders/provider/auth_provider.dart';
 import 'package:mobx_reminders/provider/reminders_provider.dart';
 import 'package:mobx_reminders/state/reminder.dart';
 
@@ -13,6 +12,7 @@ final mockReminder1 = Reminder(
   text: mockReminder1Text,
   creationDate: mockReminder1DateTime,
   isDone: mockReminder1IsDone,
+  hasImage: false,
 );
 
 final mockReminder2DateTime = DateTime(2024, 2, 2, 2, 2, 2, 2, 2);
@@ -24,6 +24,7 @@ final mockReminder2 = Reminder(
   text: mockReminder2Text,
   creationDate: mockReminder2DateTime,
   isDone: mockReminder2IsDone,
+  hasImage: false,
 );
 
 final Iterable<Reminder> mockReminders = [

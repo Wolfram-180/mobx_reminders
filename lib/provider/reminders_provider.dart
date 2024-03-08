@@ -1,4 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:mobx_reminders/state/reminder.dart';
 
 typedef ReminderId = String;
@@ -28,6 +31,16 @@ abstract class RemindersProvider {
   Future<Iterable<Reminder>> loadReminders({
     required String userId,
   });
+
+  Future<void> setReminderHasImage({
+    required ReminderId reminderId,
+    required String userId,
+  });
+
+  Future<Uint8List?> getReminderImage({
+    required ReminderId reminderId,
+    required String userId,
+  });
 }
 
 class FirestoreRemindersProvider implements RemindersProvider {
@@ -46,6 +59,7 @@ class FirestoreRemindersProvider implements RemindersProvider {
         _DocumentKeys.text: text,
         _DocumentKeys.creationDate: creationDate.toIso8601String(),
         _DocumentKeys.isDone: false,
+        _DocumentKeys.hasImage: false,
       },
     );
 
@@ -61,6 +75,13 @@ class FirestoreRemindersProvider implements RemindersProvider {
     final collection = await store.collection(userId).get();
     for (final document in collection.docs) {
       operation.delete(document.reference);
+
+      // delete image assigned with that reminder
+      try {
+        await FirebaseStorage.instance.ref(userId).child(document.id).delete();
+      } catch (e) {
+        // not handling exceptions for now
+      }
     }
     // commit for delete all user`s documents
     await operation.commit();
@@ -79,6 +100,16 @@ class FirestoreRemindersProvider implements RemindersProvider {
       (element) => element.id == id,
     );
     await firebaseReminder.reference.delete();
+
+    // delete image assigned with that reminder
+    try {
+      await FirebaseStorage.instance
+          .ref(userId)
+          .child(firebaseReminder.id)
+          .delete();
+    } catch (e) {
+      // not handling exceptions for now
+    }
   }
 
   @override
@@ -94,35 +125,77 @@ class FirestoreRemindersProvider implements RemindersProvider {
         creationDate: DateTime.parse(doc[_DocumentKeys.creationDate] as String),
         isDone: doc[_DocumentKeys.isDone] as bool,
         text: doc[_DocumentKeys.text] as String,
+        hasImage: doc[_DocumentKeys.hasImage] as bool,
       ),
     );
     return reminders;
   }
 
   @override
-  Future<void> modify({
+  Future<void> _modify({
     required ReminderId reminderId,
-    required bool isDone,
     required String userId,
+    required Map<String, Object?> keyValues,
   }) async {
     // update the remote reminder
     final collection =
         await FirebaseFirestore.instance.collection(userId).get();
 
     final firebaseReminder = collection.docs
-        .firstWhere(
-          (element) => element.id == reminderId,
-        )
+        .where((element) => element.id == reminderId)
+        .first
         .reference;
 
-    await firebaseReminder.update({
-      _DocumentKeys.isDone: isDone,
-    });
+    await firebaseReminder.update(
+      keyValues,
+    );
   }
+
+  @override
+  Future<void> modify({
+    required String userId,
+    required ReminderId reminderId,
+    required bool isDone,
+  }) =>
+      _modify(
+        reminderId: reminderId,
+        userId: userId,
+        keyValues: {
+          _DocumentKeys.isDone: isDone,
+        },
+      );
+
+  @override
+  Future<Uint8List?> getReminderImage({
+    required ReminderId reminderId,
+    required String userId,
+  }) async {
+    try {
+      final ref = FirebaseStorage.instance.ref(userId).child(reminderId);
+      final data = await ref.getData();
+      return data;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<void> setReminderHasImage({
+    required ReminderId reminderId,
+    required String userId,
+  }) =>
+      _modify(
+        reminderId: reminderId,
+        userId: userId,
+        keyValues: {
+          _DocumentKeys.hasImage: true,
+        },
+      );
 }
 
 abstract class _DocumentKeys {
   static const text = 'text';
   static const creationDate = 'creation_date';
   static const isDone = 'is_done';
+  static const hasImage = 'has_image';
 }

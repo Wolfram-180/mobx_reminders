@@ -138,6 +138,7 @@ abstract class _AppState with Store {
       id: cloudReminderId,
       isDone: false,
       text: text,
+      hasImage: false,
     );
 
     reminders.add(reminder);
