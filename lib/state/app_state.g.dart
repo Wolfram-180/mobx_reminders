@@ -151,6 +151,16 @@ mixin _$AppState on _AppState, Store {
         () => super._registerOrLogin(fn: fn, email: email, password: password));
   }
 
+  late final _$uploadAsyncAction =
+      AsyncAction('_AppState.upload', context: context);
+
+  @override
+  Future<bool> upload(
+      {required String filePath, required String forReminderId}) {
+    return _$uploadAsyncAction.run(
+        () => super.upload(filePath: filePath, forReminderId: forReminderId));
+  }
+
   late final _$_AppStateActionController =
       ActionController(name: '_AppState', context: context);
 
