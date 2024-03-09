@@ -1,12 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobx_reminders/state/reminder.dart';
 
 typedef ReminderId = String;
 
-abstract class RemindersProvider {
+abstract class RemindersService {
   Future<void> deleteReminderWithId(
     ReminderId id, {
     required String userId,
@@ -43,7 +42,7 @@ abstract class RemindersProvider {
   });
 }
 
-class FirestoreRemindersProvider implements RemindersProvider {
+class FirestoreRemindersService implements RemindersService {
   @override
   Future<ReminderId> createReminder({
     required String userId,

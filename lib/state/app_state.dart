@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:mobx_reminders/auth/auth_error.dart';
-import 'package:mobx_reminders/provider/auth_provider.dart';
-import 'package:mobx_reminders/provider/reminders_provider.dart';
+import 'package:mobx_reminders/services/auth_service.dart';
+import 'package:mobx_reminders/services/reminders_service.dart';
 import 'package:mobx_reminders/state/reminder.dart';
 import 'package:mobx_reminders/utils/upload_image.dart';
 
@@ -13,8 +13,8 @@ part 'app_state.g.dart';
 class AppState = _AppState with _$AppState;
 
 abstract class _AppState with Store {
-  final AuthProvider authProvider;
-  final RemindersProvider remindersProvider;
+  final AuthService authProvider;
+  final RemindersService remindersProvider;
 
   _AppState({
     required this.authProvider,
