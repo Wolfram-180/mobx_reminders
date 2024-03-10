@@ -24,18 +24,9 @@ void main() {
         appState.currentScreen,
         AppScreen.login,
       );
-      expect(
-        appState.authError,
-        null,
-      );
-      expect(
-        appState.isLoading,
-        false,
-      );
-      expect(
-        appState.reminders.isEmpty,
-        true,
-      );
+      appState.authError.expectNull();
+      appState.isLoading.expectFalse();
+      appState.reminders.isEmpty.expectTrue();
     },
   );
 
@@ -73,18 +64,17 @@ void main() {
         appState.reminders.length,
         mockReminders.length,
       );
-      expect(
-        appState.reminders.contains(
-          mockReminder1,
-        ),
-        true,
-      );
-      expect(
-        appState.reminders.contains(
-          mockReminder2,
-        ),
-        true,
-      );
+
+      appState.reminders
+          .contains(
+            mockReminder1,
+          )
+          .expectTrue();
+      appState.reminders
+          .contains(
+            mockReminder2,
+          )
+          .expectTrue();
     },
   );
 
@@ -106,14 +96,8 @@ void main() {
       final reminder2 = appState.reminders.firstWhere(
         (reminder) => reminder.id == mockReminder2Id,
       );
-      expect(
-        reminder1.isDone,
-        false,
-      );
-      expect(
-        reminder2.isDone,
-        true,
-      );
+      reminder1.isDone.expectFalse();
+      reminder2.isDone.expectTrue();
     },
   );
 
@@ -125,10 +109,7 @@ void main() {
       final didCreate = await appState.createReminder(
         text,
       );
-      expect(
-        didCreate,
-        true,
-      );
+      didCreate.expectTrue();
       expect(
         appState.reminders.length,
         mockReminders.length + 1,
@@ -142,10 +123,7 @@ void main() {
         testReminder.text,
         text,
       );
-      expect(
-        testReminder.isDone,
-        false,
-      );
+      testReminder.isDone.expectFalse();
     },
   );
 
@@ -156,10 +134,7 @@ void main() {
       final count = appState.reminders.length;
       final reminder = appState.reminders.first;
       final deleted = await appState.delete(reminder);
-      expect(
-        deleted,
-        true,
-      );
+      deleted.expectTrue();
       expect(
         appState.reminders.length,
         count - 1,
@@ -172,14 +147,8 @@ void main() {
     () async {
       await appState.initialize();
       final couldDeleteAccount = await appState.deleteAccount();
-      expect(
-        couldDeleteAccount,
-        true,
-      );
-      expect(
-        appState.reminders.isEmpty,
-        true,
-      );
+      couldDeleteAccount.expectTrue();
+      appState.reminders.isEmpty.expectTrue();
       expect(
         appState.currentScreen,
         AppScreen.login,
@@ -192,14 +161,83 @@ void main() {
     () async {
       await appState.initialize();
       await appState.logOut();
-      expect(
-        appState.reminders.isEmpty,
-        true,
-      );
+      appState.reminders.isEmpty.expectTrue();
       expect(
         appState.currentScreen,
         AppScreen.login,
       );
     },
   );
+
+  test(
+    'uploading image for reminder',
+    () async {
+      await appState.initialize();
+      final reminder = appState.reminders.firstWhere(
+        (element) => element.id == mockReminder1Id,
+      );
+      reminder.hasImage.expectFalse();
+      reminder.imageData.expectNull();
+
+      // fake image upload for reminder
+      final couldUploadImage = await appState.upload(
+        filePath: 'dummy_path',
+        forReminderId: reminder.id,
+      );
+
+      couldUploadImage.expectTrue();
+      reminder.hasImage.expectTrue();
+      reminder.imageData.expectNull();
+
+      final imageData = await appState.getReminderImage(
+        reminderId: reminder.id,
+      );
+
+      imageData.expectNotNull();
+      imageData!
+          .isEqualTo(
+            mockReminder1ImageData,
+          )
+          .expectTrue();
+    },
+  );
+}
+
+extension Expectations on Object? {
+  void expectNull() => expect(
+        this,
+        isNull,
+      );
+  void expectNotNull() => expect(
+        this,
+        isNotNull,
+      );
+}
+
+extension BoolExpectations on bool {
+  void expectTrue() => expect(
+        this,
+        true,
+      );
+  void expectFalse() => expect(
+        this,
+        false,
+      );
+}
+
+extension Comparison<E> on List<E> {
+  bool isEqualTo(List<E> other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (length != other.length) {
+      return false;
+    }
+    for (var i = 0; i < length; i++) {
+      if (this[i] != other[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
