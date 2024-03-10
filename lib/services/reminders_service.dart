@@ -130,7 +130,6 @@ class FirestoreRemindersService implements RemindersService {
     return reminders;
   }
 
-  @override
   Future<void> _modify({
     required ReminderId reminderId,
     required String userId,
