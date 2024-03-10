@@ -1,24 +1,24 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:mobx_reminders/auth/auth_error.dart';
 import 'package:mobx_reminders/services/auth_service.dart';
+import 'package:mobx_reminders/services/image_upload_service.dart';
 import 'package:mobx_reminders/services/reminders_service.dart';
 import 'package:mobx_reminders/state/reminder.dart';
-import 'package:mobx_reminders/utils/upload_image.dart';
 
 part 'app_state.g.dart';
 
 class AppState = _AppState with _$AppState;
 
 abstract class _AppState with Store {
-  final AuthService authProvider;
-  final RemindersService remindersProvider;
+  final AuthService authService;
+  final RemindersService remindersService;
+  final ImageUploadService imageUploadService;
 
   _AppState({
-    required this.authProvider,
-    required this.remindersProvider,
+    required this.authService,
+    required this.remindersService,
+    required this.imageUploadService,
   });
 
   @observable
@@ -49,7 +49,7 @@ abstract class _AppState with Store {
   ) async {
     isLoading = true;
 
-    final userId = authProvider.userId;
+    final userId = authService.userId;
     if (userId == null) {
       isLoading = false;
       return false;
@@ -57,7 +57,7 @@ abstract class _AppState with Store {
 
     try {
       // remote delete
-      await remindersProvider.deleteReminderWithId(
+      await remindersService.deleteReminderWithId(
         reminder.id,
         userId: userId,
       );
@@ -78,7 +78,7 @@ abstract class _AppState with Store {
   Future<bool> deleteAccount() async {
     isLoading = true;
 
-    final userId = authProvider.userId;
+    final userId = authService.userId;
     if (userId == null) {
       isLoading = false;
       return false;
@@ -86,14 +86,14 @@ abstract class _AppState with Store {
 
     try {
       // remote delete all docs
-      await remindersProvider.deleteAllDocuments(
+      await remindersService.deleteAllDocuments(
         userId: userId,
       );
 
       // local delete all docs
       reminders.clear();
       // dlete acc & sign out
-      await authProvider.deleteAccountAndSignOut();
+      await authService.deleteAccountAndSignOut();
 
       currentScreen = AppScreen.login;
       return true;
@@ -110,7 +110,7 @@ abstract class _AppState with Store {
   @action
   Future<void> logOut() async {
     isLoading = true;
-    await authProvider.signOut();
+    await authService.signOut();
     reminders.clear();
     isLoading = false;
     currentScreen = AppScreen.login;
@@ -121,7 +121,7 @@ abstract class _AppState with Store {
     isLoading = true;
 
     // check user
-    final userId = authProvider.userId;
+    final userId = authService.userId;
     if (userId == null) {
       isLoading = false;
       return false;
@@ -130,7 +130,7 @@ abstract class _AppState with Store {
     final creationDate = DateTime.now();
 
     // create firebase reminder
-    final cloudReminderId = await remindersProvider.createReminder(
+    final cloudReminderId = await remindersService.createReminder(
       userId: userId,
       text: text,
       creationDate: creationDate,
@@ -155,12 +155,12 @@ abstract class _AppState with Store {
     required ReminderId reminderId,
     required bool isDone,
   }) async {
-    final userId = authProvider.userId;
+    final userId = authService.userId;
     if (userId == null) {
       return false;
     }
 
-    await remindersProvider.modify(
+    await remindersService.modify(
       reminderId: reminderId,
       isDone: isDone,
       userId: userId,
@@ -179,7 +179,7 @@ abstract class _AppState with Store {
   @action
   Future<void> initialize() async {
     isLoading = true;
-    final userId = authProvider.userId;
+    final userId = authService.userId;
     if (userId != null) {
       await _loadReminders();
       currentScreen = AppScreen.reminders;
@@ -191,12 +191,12 @@ abstract class _AppState with Store {
 
   @action
   Future<bool> _loadReminders() async {
-    final userId = authProvider.userId;
+    final userId = authService.userId;
     if (userId == null) {
       return false;
     }
 
-    final reminders = await remindersProvider.loadReminders(
+    final reminders = await remindersService.loadReminders(
       userId: userId,
     );
 
@@ -229,7 +229,7 @@ abstract class _AppState with Store {
       return false;
     } finally {
       isLoading = false;
-      if (authProvider.userId != null) {
+      if (authService.userId != null) {
         currentScreen = AppScreen.reminders;
       }
     }
@@ -241,7 +241,7 @@ abstract class _AppState with Store {
     required String password,
   }) =>
       _registerOrLogin(
-        fn: authProvider.register,
+        fn: authService.register,
         email: email,
         password: password,
       );
@@ -252,7 +252,7 @@ abstract class _AppState with Store {
     required String password,
   }) =>
       _registerOrLogin(
-        fn: authProvider.login,
+        fn: authService.login,
         email: email,
         password: password,
       );
@@ -262,7 +262,7 @@ abstract class _AppState with Store {
     required String filePath,
     required ReminderId forReminderId,
   }) async {
-    final userId = authProvider.userId;
+    final userId = authService.userId;
     if (userId == null) {
       return false;
     }
@@ -273,11 +273,10 @@ abstract class _AppState with Store {
     );
     reminder.isLoading = true;
 
-    final file = File(filePath);
-    final imageId = await uploadImage(
-      file: file,
+    final imageId = await imageUploadService.uploadImage(
       userId: userId,
       imageId: forReminderId,
+      filePath: filePath,
     );
 
     if (imageId == null) {
@@ -286,7 +285,7 @@ abstract class _AppState with Store {
       return false;
     }
 
-    await remindersProvider.setReminderHasImage(
+    await remindersService.setReminderHasImage(
       reminderId: forReminderId,
       userId: userId,
     );
@@ -299,7 +298,7 @@ abstract class _AppState with Store {
   Future<Uint8List?> getReminderImage({
     required ReminderId reminderId,
   }) async {
-    final userId = authProvider.userId;
+    final userId = authService.userId;
     if (userId == null) {
       return null;
     }
@@ -310,12 +309,13 @@ abstract class _AppState with Store {
 
     // checking if image was previously loaded in local reminder
     // to not repeatedly get it from web
+
     final existingImageData = reminder.imageData;
     if (existingImageData != null) {
       return existingImageData;
     }
 
-    final image = await remindersProvider.getReminderImage(
+    final image = await remindersService.getReminderImage(
       reminderId: reminderId,
       userId: userId,
     );
