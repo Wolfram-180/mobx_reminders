@@ -1,16 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx_reminders/state/app_state.dart';
 
-import 'mocks/mock_auth_provider.dart';
-import 'mocks/mock_reminders_provider.dart';
+import 'mocks/mock_auth_service.dart';
+import 'mocks/mock_image_upload_service.dart';
+import 'mocks/mock_reminders_service.dart';
 
 void main() {
   late AppState appState;
   setUp(
     () {
       appState = AppState(
-        authProvider: MockAuthProvider(),
-        remindersProvider: MockRemindersProvider(),
+        authService: MockAuthService(),
+        remindersService: MockRemindersService(),
+        imageUploadService: MockImageUploadService(),
       );
     },
   );

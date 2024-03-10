@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:mobx_reminders/services/reminders_service.dart';
 import 'package:mobx_reminders/state/reminder.dart';
 
@@ -7,6 +9,7 @@ final mockReminder1DateTime = DateTime(2024, 3, 3, 3, 3, 3, 3, 3);
 const mockReminder1Id = '1';
 const mockReminder1Text = 'Text1';
 const mockReminder1IsDone = true;
+final mockReminder1ImageData = 'image1'.toUint8List();
 final mockReminder1 = Reminder(
   id: mockReminder1Id,
   text: mockReminder1Text,
@@ -19,6 +22,7 @@ final mockReminder2DateTime = DateTime(2024, 2, 2, 2, 2, 2, 2, 2);
 const mockReminder2Id = '2';
 const mockReminder2Text = 'Text2';
 const mockReminder2IsDone = false;
+final mockReminder2ImageData = 'image2'.toUint8List();
 final mockReminder2 = Reminder(
   id: mockReminder2Id,
   text: mockReminder2Text,
@@ -34,7 +38,7 @@ final Iterable<Reminder> mockReminders = [
 
 const mockReminderId = 'mockReminderId';
 
-class MockRemindersProvider implements RemindersService {
+class MockRemindersService implements RemindersService {
   @override
   Future<ReminderId> createReminder({
     required String userId,
@@ -69,4 +73,31 @@ class MockRemindersProvider implements RemindersService {
     required String userId,
   }) =>
       Future.delayed(oneSecond);
+
+  @override
+  Future<Uint8List?> getReminderImage({
+    required ReminderId reminderId,
+    required String userId,
+  }) async {
+    switch (reminderId) {
+      case mockReminder1Id:
+        return mockReminder1ImageData;
+      case mockReminder2Id:
+        return mockReminder2ImageData;
+      default:
+        return null;
+    }
+  }
+
+  @override
+  Future<void> setReminderHasImage({
+    required ReminderId reminderId,
+    required String userId,
+  }) async {
+    mockReminders
+        .firstWhere(
+          (element) => element.id == reminderId,
+        )
+        .hasImage = true;
+  }
 }

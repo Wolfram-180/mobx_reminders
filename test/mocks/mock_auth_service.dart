@@ -1,7 +1,7 @@
 import 'package:mobx_reminders/services/auth_service.dart';
 import '../utils.dart';
 
-class MockAuthProvider implements AuthService {
+class MockAuthService implements AuthService {
   @override
   Future<bool> deleteAccountAndSignOut() => true.toFuture(
         oneSecond,
